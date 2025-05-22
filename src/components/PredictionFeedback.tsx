@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { AlertCircle, CheckCircle, Send, RefreshCw } from 'lucide-react';
+import FeedbackModal from './FeedbackModal';
 
 interface PredictionFeedbackProps {
   prediction: string;
@@ -17,6 +18,7 @@ const PredictionFeedback: React.FC<PredictionFeedbackProps> = ({
   const [comments, setComments] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showReanalysisModal, setShowReanalysisModal] = useState(false);
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [reanalysisNotes, setReanalysisNotes] = useState('');
 
   const handleSubmit = async () => {
@@ -24,6 +26,7 @@ const PredictionFeedback: React.FC<PredictionFeedbackProps> = ({
     await submitFeedback(comments);
     setComments('');
     setIsSubmitting(false);
+    setShowFeedbackModal(true);
   };
 
   const handleReanalyze = () => {
@@ -38,7 +41,13 @@ const PredictionFeedback: React.FC<PredictionFeedbackProps> = ({
 
   return (
     <div className="p-4 transition-colors duration-300 bg-white rounded-lg shadow-sm dark:bg-gray-800">
-      {/* Modal Overlay */}
+      {/* Feedback Success Modal */}
+      <FeedbackModal 
+        isOpen={showFeedbackModal} 
+        onClose={() => setShowFeedbackModal(false)} 
+      />
+
+      {/* Reanalysis Modal */}
       {showReanalysisModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-xl dark:bg-gray-800">
