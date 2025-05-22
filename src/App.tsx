@@ -13,6 +13,7 @@ function App() {
   const [currentImage, setCurrentImage] = useState<string>('');
   const [maskedImage, setMaskedImage] = useState<string>('');
   const [prediction, setPrediction] = useState<string>('-');
+  const [isReanalysis, setIsReanalysis] = useState(false);
 
   useEffect(() => {
     fetchPatients();
@@ -44,9 +45,11 @@ function App() {
     const imageUrl = `http://52.230.108.4:8097/api/orthanc/get-image-old/${selectedPatient.patientId}`;
     setCurrentImage(imageUrl);
     setMaskedImage(''); // Reset masked image when loading new image
+    setPrediction('-'); // Reset prediction
+    setIsReanalysis(false); // Reset reanalysis flag
   };
 
-  const analyzeImage = async () => {
+  const analyzeImage = async (isSecondOpinion = false) => {
     if (!currentImage) return;
     
     try {
@@ -56,7 +59,12 @@ function App() {
       const formData = new FormData();
       formData.append('files', blob, 'image.tiff');
       
-      const predictionResponse = await fetch('http://20.184.8.188:8509/predict', {
+      // Use different endpoint for reanalysis
+      const predictionUrl = isSecondOpinion 
+        ? 'http://20.184.8.188:8510/predict'  // Second opinion endpoint
+        : 'http://20.184.8.188:8509/predict'; // Initial analysis endpoint
+      
+      const predictionResponse = await fetch(predictionUrl, {
         method: 'POST',
         body: formData
       });
@@ -67,6 +75,7 @@ function App() {
         : 'No Anomalies Detected';
       
       setPrediction(predictionResult);
+      setIsReanalysis(isSecondOpinion);
       
       // Load the corresponding masked image from assets
       const maskedImagePath = `/assets/scans/overlay_${selectedPatient?.patientId}.jpg`;
@@ -87,7 +96,8 @@ function App() {
         analysisResult: prediction,
         feedback: '',
         comments,
-        patientDetails: selectedPatient
+        patientDetails: selectedPatient,
+        isReanalysis
       };
       
       const response = await fetch('http://20.184.8.188:8084/feedback/saveUserFeedback', {
@@ -125,7 +135,7 @@ function App() {
             setSelectedPatient={setSelectedPatient}
             isLoading={isLoading}
             loadImage={loadImage}
-            analyzeImage={analyzeImage}
+            analyzeImage={() => analyzeImage(false)}
           />
           
           <ImageAnalysisPanel 
@@ -133,6 +143,8 @@ function App() {
             maskedImage={maskedImage}
             prediction={prediction}
             submitFeedback={submitFeedback}
+            onReanalyze={() => analyzeImage(true)}
+            isReanalysis={isReanalysis}
           />
         </div>
       </div>

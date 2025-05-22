@@ -1,14 +1,18 @@
 import React, { useState } from 'react';
-import { AlertCircle, CheckCircle, Send } from 'lucide-react';
+import { AlertCircle, CheckCircle, Send, RefreshCw } from 'lucide-react';
 
 interface PredictionFeedbackProps {
   prediction: string;
   submitFeedback: (comments: string) => void;
+  onReanalyze: () => void;
+  isReanalysis: boolean;
 }
 
 const PredictionFeedback: React.FC<PredictionFeedbackProps> = ({
   prediction,
-  submitFeedback
+  submitFeedback,
+  onReanalyze,
+  isReanalysis
 }) => {
   const [comments, setComments] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -27,10 +31,20 @@ const PredictionFeedback: React.FC<PredictionFeedbackProps> = ({
       </h3>
       
       <div className="p-4 mb-4 transition-colors duration-300 border rounded-md dark:border-gray-700">
-        <div className="flex items-center mb-2">
+        <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
-            Prediction:
+            {isReanalysis ? 'Second Opinion:' : 'Initial Prediction:'}
           </span>
+          
+          {prediction !== '-' && !isReanalysis && (
+            <button
+              onClick={onReanalyze}
+              className="flex items-center px-3 py-1 text-sm text-blue-600 transition-colors duration-200 border border-blue-600 rounded-md hover:bg-blue-50 dark:text-blue-400 dark:border-blue-400 dark:hover:bg-gray-700"
+            >
+              <RefreshCw className="w-4 h-4 mr-1" />
+              Get Second Opinion
+            </button>
+          )}
         </div>
         
         <div className="flex items-center">
@@ -54,7 +68,7 @@ const PredictionFeedback: React.FC<PredictionFeedbackProps> = ({
       
       <div>
         <label htmlFor="commentBox" className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-          Comments
+          Doctor's Comments
         </label>
         
         <textarea
@@ -62,7 +76,7 @@ const PredictionFeedback: React.FC<PredictionFeedbackProps> = ({
           rows={4}
           value={comments}
           onChange={(e) => setComments(e.target.value)}
-          placeholder="Enter your feedback or observations here..."
+          placeholder="Enter your medical observations and feedback here..."
           className="w-full px-3 py-2 transition-colors duration-200 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
         />
         
