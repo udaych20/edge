@@ -9,7 +9,6 @@ interface ImageAnalysisPanelProps {
   submitFeedback: (comments: string) => void;
   onReanalyze: () => void;
   isReanalysis: boolean;
-  isPredicting: boolean;
 }
 
 const ImageAnalysisPanel: React.FC<ImageAnalysisPanelProps> = ({
@@ -18,8 +17,7 @@ const ImageAnalysisPanel: React.FC<ImageAnalysisPanelProps> = ({
   prediction,
   submitFeedback,
   onReanalyze,
-  isReanalysis,
-  isPredicting
+  isReanalysis
 }) => {
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
@@ -38,10 +36,9 @@ const ImageAnalysisPanel: React.FC<ImageAnalysisPanelProps> = ({
         submitFeedback={submitFeedback}
         onReanalyze={onReanalyze}
         isReanalysis={isReanalysis}
-        isPredicting={isPredicting}
       />
     </div>
   );
 };
 
-export default ImageAnalysisPanel
+export default ImageAnalysisPanel;
