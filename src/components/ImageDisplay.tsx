@@ -24,7 +24,9 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({ imageUrl, title }) => {
           <div className="flex flex-col items-center justify-center text-gray-400 text-center px-4">
             <ImageIcon className="w-12 h-12 mb-2 opacity-30" />
             <span className="text-sm">
-              {title === "Marked Scan" 
+              {title === "Original Scan"
+                ? "Click 'Load Image' to see the scan"
+                : title === "Marked Scan"
                 ? "Click 'Analyze' to view the tumor"
                 : "No image loaded"}
             </span>
