@@ -5,6 +5,24 @@ import PatientSelection from './components/PatientSelection';
 import ImageAnalysisPanel from './components/ImageAnalysisPanel';
 import { Patient } from './types';
 
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+const fetchWithRetry = async (url: string, retries = 3, delayMs = 1000) => {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (err) {
+      if (attempt === retries) throw err;
+      await delay(delayMs);
+      console.log(`Retry attempt ${attempt} of ${retries}...`);
+    }
+  }
+};
+
 function App() {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
@@ -21,18 +39,16 @@ function App() {
 
   const fetchPatients = async () => {
     setIsLoading(true);
+    setError(null);
     try {
-      const response = await fetch('http://52.230.108.4:8097/api/orthanc/patients');
-      if (!response.ok) {
-        throw new Error('Failed to fetch patients');
-      }
-      const data = await response.json();
+      const data = await fetchWithRetry('http://52.230.108.4:8097/api/orthanc/patients');
       setPatients(data);
       if (data.length > 0) {
         setSelectedPatient(data[0]);
       }
     } catch (err) {
-      setError('Error loading patients. Please try again later.');
+      const errorMessage = 'Unable to load patient data. Please check your network connection or try again later. If the problem persists, contact support.';
+      setError(errorMessage);
       console.error('Error fetching patients:', err);
     } finally {
       setIsLoading(false);
