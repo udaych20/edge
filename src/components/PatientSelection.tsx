@@ -21,15 +21,19 @@ const PatientSelection: React.FC<PatientSelectionProps> = ({
 }) => {
   return (
     <div className="p-6 mb-6 transition-colors duration-300 bg-white rounded-lg shadow-sm dark:bg-gray-800">
+      <h3 className="mb-4 text-sm font-semibold text-gray-700 dark:text-gray-300">
+        Patient Information
+      </h3>
+      
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-        <div className="md:col-span-1">
-          <label htmlFor="patientName" className="block mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
-            Patient Selection
+        <div className="p-3 bg-gray-50 rounded-lg dark:bg-gray-700">
+          <label htmlFor="patientName" className="block mb-1 text-xs font-medium text-gray-500 dark:text-gray-400">
+            Select Patient
           </label>
           <div className="relative">
             <select
               id="patientName"
-              className="w-full px-4 py-2.5 text-base transition-colors duration-200 bg-white border border-gray-300 rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white pr-10"
+              className="w-full px-3 py-2 text-sm transition-colors duration-200 bg-white border border-gray-300 rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white pr-10"
               value={selectedPatient?.patientId || ''}
               onChange={(e) => {
                 const selected = patients.find(p => p.patientId === e.target.value);
@@ -62,85 +66,68 @@ const PatientSelection: React.FC<PatientSelectionProps> = ({
           </div>
         </div>
 
-        <div className="md:col-span-2">
-          <h3 className="mb-4 text-sm font-semibold text-gray-700 dark:text-gray-300">
-            Patient Information
-          </h3>
-          
-          <div className="grid grid-cols-3 gap-4 mb-6">
-            <div className="p-3 bg-gray-50 rounded-lg dark:bg-gray-700">
-              <span className="block mb-1 text-xs font-medium text-gray-500 dark:text-gray-400">
-                Full Name
-              </span>
-              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                {selectedPatient?.patientName || '-'}
-              </p>
-            </div>
-            
-            <div className="p-3 bg-gray-50 rounded-lg dark:bg-gray-700">
-              <span className="block mb-1 text-xs font-medium text-gray-500 dark:text-gray-400">
-                Patient ID
-              </span>
-              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                {selectedPatient?.patientId || '-'}
-              </p>
-            </div>
-            
-            <div className="p-3 bg-gray-50 rounded-lg dark:bg-gray-700">
-              <span className="block mb-1 text-xs font-medium text-gray-500 dark:text-gray-400">
-                Date of Birth
-              </span>
-              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                {selectedPatient?.patientBirthDate || '-'}
-              </p>
-            </div>
-            
-            <div className="p-3 bg-gray-50 rounded-lg dark:bg-gray-700">
-              <span className="block mb-1 text-xs font-medium text-gray-500 dark:text-gray-400">
-                Gender
-              </span>
-              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                {selectedPatient?.patientSex || '-'}
-              </p>
-            </div>
-            
-            <div className="p-3 bg-gray-50 rounded-lg dark:bg-gray-700">
-              <span className="block mb-1 text-xs font-medium text-gray-500 dark:text-gray-400">
-                Age
-              </span>
-              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                {selectedPatient?.patientAge || '-'}
-              </p>
-            </div>
-            
-            <div className="p-3 bg-gray-50 rounded-lg dark:bg-gray-700">
-              <span className="block mb-1 text-xs font-medium text-gray-500 dark:text-gray-400">
-                Weight
-              </span>
-              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                {selectedPatient?.patientWeight ? `${selectedPatient.patientWeight} kg` : '-'}
-              </p>
-            </div>
-          </div>
-          
-          <div className="flex gap-4">
-            <button
-              onClick={loadImage}
-              disabled={!selectedPatient}
-              className="px-4 py-2 text-sm font-medium text-white transition-colors duration-200 bg-green-600 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-green-700 dark:hover:bg-green-800"
-            >
-              Load Image
-            </button>
-            
-            <button
-              onClick={analyzeImage}
-              disabled={!selectedPatient}
-              className="px-4 py-2 text-sm font-medium text-white transition-colors duration-200 bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-blue-700 dark:hover:bg-blue-800"
-            >
-              Analyze
-            </button>
-          </div>
+        <div className="p-3 bg-gray-50 rounded-lg dark:bg-gray-700">
+          <span className="block mb-1 text-xs font-medium text-gray-500 dark:text-gray-400">
+            Patient ID
+          </span>
+          <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+            {selectedPatient?.patientId || '-'}
+          </p>
         </div>
+        
+        <div className="p-3 bg-gray-50 rounded-lg dark:bg-gray-700">
+          <span className="block mb-1 text-xs font-medium text-gray-500 dark:text-gray-400">
+            Date of Birth
+          </span>
+          <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+            {selectedPatient?.patientBirthDate || '-'}
+          </p>
+        </div>
+        
+        <div className="p-3 bg-gray-50 rounded-lg dark:bg-gray-700">
+          <span className="block mb-1 text-xs font-medium text-gray-500 dark:text-gray-400">
+            Gender
+          </span>
+          <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+            {selectedPatient?.patientSex || '-'}
+          </p>
+        </div>
+        
+        <div className="p-3 bg-gray-50 rounded-lg dark:bg-gray-700">
+          <span className="block mb-1 text-xs font-medium text-gray-500 dark:text-gray-400">
+            Age
+          </span>
+          <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+            {selectedPatient?.patientAge || '-'}
+          </p>
+        </div>
+        
+        <div className="p-3 bg-gray-50 rounded-lg dark:bg-gray-700">
+          <span className="block mb-1 text-xs font-medium text-gray-500 dark:text-gray-400">
+            Weight
+          </span>
+          <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+            {selectedPatient?.patientWeight ? `${selectedPatient.patientWeight} kg` : '-'}
+          </p>
+        </div>
+      </div>
+      
+      <div className="flex gap-4 mt-6">
+        <button
+          onClick={loadImage}
+          disabled={!selectedPatient}
+          className="px-4 py-2 text-sm font-medium text-white transition-colors duration-200 bg-green-600 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-green-700 dark:hover:bg-green-800"
+        >
+          Load Image
+        </button>
+        
+        <button
+          onClick={analyzeImage}
+          disabled={!selectedPatient}
+          className="px-4 py-2 text-sm font-medium text-white transition-colors duration-200 bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-blue-700 dark:hover:bg-blue-800"
+        >
+          Analyze
+        </button>
       </div>
     </div>
   );
