@@ -43,3 +43,5 @@ const ImageAnalysisPanel: React.FC<ImageAnalysisPanelProps> = ({
     </div>
   );
 };
+
+export default ImageAnalysisPanel
