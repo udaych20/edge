@@ -121,7 +121,7 @@ const PredictionFeedback: React.FC<PredictionFeedbackProps> = ({
       
       <div>
         <label htmlFor="commentBox" className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-          Doctor's Comments
+          Feedback
         </label>
         
         <textarea
