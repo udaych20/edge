@@ -47,8 +47,11 @@ function App() {
     setMaskedImage(''); // Reset masked image when loading new image
     setPrediction('-'); // Reset prediction
     setIsReanalysis(false); // Reset reanalysis flag
+    setPrediction('-'); // Reset prediction
+    setIsReanalysis(false); // Reset reanalysis flag
   };
 
+  const analyzeImage = async (isSecondOpinion = false) => {
   const analyzeImage = async (isSecondOpinion = false) => {
     if (!currentImage) return;
     
@@ -76,6 +79,7 @@ function App() {
       
       setPrediction(predictionResult);
       setIsReanalysis(isSecondOpinion);
+      setIsReanalysis(isSecondOpinion);
       
       // Load the corresponding masked image from assets
       const maskedImagePath = `/assets/scans/overlay_${selectedPatient?.patientId}.jpg`;
@@ -96,6 +100,8 @@ function App() {
         analysisResult: prediction,
         feedback: '',
         comments,
+        patientDetails: selectedPatient,
+        isReanalysis
         patientDetails: selectedPatient,
         isReanalysis
       };
@@ -136,6 +142,7 @@ function App() {
             isLoading={isLoading}
             loadImage={loadImage}
             analyzeImage={() => analyzeImage(false)}
+            analyzeImage={() => analyzeImage(false)}
           />
           
           <ImageAnalysisPanel 
@@ -143,6 +150,8 @@ function App() {
             maskedImage={maskedImage}
             prediction={prediction}
             submitFeedback={submitFeedback}
+            onReanalyze={() => analyzeImage(true)}
+            isReanalysis={isReanalysis}
             onReanalyze={() => analyzeImage(true)}
             isReanalysis={isReanalysis}
           />
