@@ -39,7 +39,7 @@ const ImageAnalysisPanel: React.FC<ImageAnalysisPanelProps> = ({
       
       <ImageDisplay 
         imageUrl={maskedImage} 
-        title="Marked Scan"
+        title="Annotated Scan"
         onAction={currentImage && !maskedImage ? analyzeImage : undefined}
         actionLabel={currentImage && !maskedImage ? "Analyze" : undefined}
         showRefresh={!!maskedImage}

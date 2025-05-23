@@ -68,7 +68,7 @@ function App() {
   };
 
   const analyzeImage = async (isSecondOpinion = false) => {
-    if (!currentImage) return;
+    if (!currentImage || !selectedPatient) return;
     
     setIsAnalyzing(true);
     try {
@@ -95,7 +95,8 @@ function App() {
       setPrediction(predictionResult);
       setIsReanalysis(isSecondOpinion);
       
-      const maskedImagePath = `/assets/scans/overlay_${selectedPatient?.patientId}.jpg`;
+      // Use the same overlay image for both first analysis and reanalysis
+      const maskedImagePath = `/assets/scans/overlay_${selectedPatient.patientId}.jpg`;
       setMaskedImage(maskedImagePath);
     } catch (err) {
       console.error('Error analyzing image:', err);
