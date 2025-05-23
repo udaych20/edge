@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { CheckCircle, X } from 'lucide-react';
 
 interface FeedbackModalProps {
@@ -7,6 +7,26 @@ interface FeedbackModalProps {
 }
 
 const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose }) => {
+  const [countdown, setCountdown] = useState(5);
+
+  useEffect(() => {
+    if (isOpen) {
+      setCountdown(5);
+      const timer = setInterval(() => {
+        setCountdown(prev => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            onClose();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      return () => clearInterval(timer);
+    }
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   return (
@@ -28,8 +48,12 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose }) => {
             Feedback Submitted
           </h3>
           
-          <p className="text-gray-600 dark:text-gray-300">
+          <p className="mb-4 text-gray-600 dark:text-gray-300">
             Thank you for your feedback. Your input helps improve our analysis system.
+          </p>
+
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            Closing in {countdown} seconds...
           </p>
         </div>
       </div>
