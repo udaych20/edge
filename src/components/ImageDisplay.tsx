@@ -26,13 +26,13 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({
         <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
           {title}
         </h3>
-        {showRefresh && imageUrl && (
+        {showRefresh && (
           <button
             onClick={onRefresh}
             className="p-1.5 text-blue-600 transition-colors duration-200 rounded-full hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-gray-700"
-            title="Request second opinion"
+            title={title === "Original Scan" ? "Reload scan" : "Request second opinion"}
           >
-            <RefreshCw className="w-4 h-4" />
+            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
           </button>
         )}
       </div>

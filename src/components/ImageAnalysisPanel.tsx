@@ -30,16 +30,19 @@ const ImageAnalysisPanel: React.FC<ImageAnalysisPanelProps> = ({
       <ImageDisplay 
         imageUrl={currentImage} 
         title="Original Scan"
-        onAction={loadImage}
-        actionLabel="Load Image"
+        onAction={!currentImage ? loadImage : undefined}
+        actionLabel={!currentImage ? "Load Image" : undefined}
+        showRefresh={!!currentImage}
+        onRefresh={loadImage}
+        isLoading={false}
       />
       
       <ImageDisplay 
         imageUrl={maskedImage} 
         title="Marked Scan"
-        onAction={currentImage ? analyzeImage : undefined}
-        actionLabel={currentImage ? "Analyze" : undefined}
-        showRefresh={maskedImage && !isReanalysis}
+        onAction={currentImage && !maskedImage ? analyzeImage : undefined}
+        actionLabel={currentImage && !maskedImage ? "Analyze" : undefined}
+        showRefresh={!!maskedImage}
         onRefresh={onReanalyze}
         isLoading={isAnalyzing}
       />
