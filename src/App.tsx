@@ -136,36 +136,36 @@ function App() {
 
   return (
     <ThemeProvider>
-      <div className="min-h-screen p-5 transition-colors duration-300 bg-gray-50 dark:bg-gray-900">
-        <div className="container mx-auto max-w-6xl">
+      <div className="min-h-screen p-4 transition-colors duration-300 bg-gray-50 dark:bg-gray-900">
+        <div className="container mx-auto max-w-7xl">
           <Header />
           
           {error && (
-            <div className="p-4 mb-5 text-white bg-red-500 rounded-lg">
+            <div className="p-4 mb-4 text-white bg-red-500 rounded-lg">
               {error}
             </div>
           )}
           
-          <PatientSelection 
-            patients={patients}
-            selectedPatient={selectedPatient}
-            setSelectedPatient={setSelectedPatient}
-            isLoading={isLoading}
-            loadImage={loadImage}
-            analyzeImage={() => analyzeImage(false)}
-          />
-          
-          <ImageAnalysisPanel 
-            currentImage={currentImage}
-            maskedImage={maskedImage}
-            prediction={prediction}
-            submitFeedback={submitFeedback}
-            onReanalyze={() => analyzeImage(true)}
-            isReanalysis={isReanalysis}
-            isAnalyzing={isAnalyzing}
-            loadImage={loadImage}
-            analyzeImage={() => analyzeImage(false)}
-          />
+          <div className="space-y-4">
+            <PatientSelection 
+              patients={patients}
+              selectedPatient={selectedPatient}
+              setSelectedPatient={setSelectedPatient}
+              isLoading={isLoading}
+            />
+            
+            <ImageAnalysisPanel 
+              currentImage={currentImage}
+              maskedImage={maskedImage}
+              prediction={prediction}
+              submitFeedback={submitFeedback}
+              onReanalyze={() => analyzeImage(true)}
+              isReanalysis={isReanalysis}
+              isAnalyzing={isAnalyzing}
+              loadImage={loadImage}
+              analyzeImage={() => analyzeImage(false)}
+            />
+          </div>
         </div>
       </div>
     </ThemeProvider>
