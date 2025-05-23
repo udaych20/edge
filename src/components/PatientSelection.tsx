@@ -17,19 +17,15 @@ const PatientSelection: React.FC<PatientSelectionProps> = ({
 }) => {
   return (
     <div className="p-4 transition-colors duration-300 bg-white rounded-lg shadow-sm dark:bg-gray-800">
-      <h3 className="mb-3 text-sm font-semibold text-gray-700 dark:text-gray-300">
-        Patient Information
-      </h3>
-      
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-6">
-        <div className="p-2 bg-gray-50 rounded-lg dark:bg-gray-700">
+      <div className="flex flex-wrap items-center gap-6">
+        <div className="w-64">
           <label htmlFor="patientName" className="block mb-1 text-xs font-medium text-gray-500 dark:text-gray-400">
             Select Patient
           </label>
           <div className="relative">
             <select
               id="patientName"
-              className="w-full px-2 py-1.5 text-sm transition-colors duration-200 bg-white border border-gray-300 rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white pr-8"
+              className="w-full px-3 py-2 text-sm transition-colors duration-200 bg-white border border-gray-300 rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white pr-10"
               value={selectedPatient?.patientId || ''}
               onChange={(e) => {
                 const selected = patients.find(p => p.patientId === e.target.value);
@@ -48,7 +44,6 @@ const PatientSelection: React.FC<PatientSelectionProps> = ({
                     <option 
                       key={patient.patientId} 
                       value={patient.patientId}
-                      className="py-1"
                     >
                       {patient.patientName || `Patient ${patient.patientId}`}
                     </option>
@@ -56,55 +51,47 @@ const PatientSelection: React.FC<PatientSelectionProps> = ({
                 </>
               )}
             </select>
-            <div className="absolute inset-y-0 right-0 flex items-center px-1.5 pointer-events-none">
+            <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
               <ChevronDown className="w-4 h-4 text-gray-400" />
             </div>
           </div>
         </div>
 
-        <div className="p-2 bg-gray-50 rounded-lg dark:bg-gray-700">
-          <span className="block mb-1 text-xs font-medium text-gray-500 dark:text-gray-400">
-            Patient ID
-          </span>
-          <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-            {selectedPatient?.patientId || '-'}
-          </p>
-        </div>
-        
-        <div className="p-2 bg-gray-50 rounded-lg dark:bg-gray-700">
-          <span className="block mb-1 text-xs font-medium text-gray-500 dark:text-gray-400">
-            Date of Birth
-          </span>
-          <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-            {selectedPatient?.patientBirthDate || '-'}
-          </p>
-        </div>
-        
-        <div className="p-2 bg-gray-50 rounded-lg dark:bg-gray-700">
-          <span className="block mb-1 text-xs font-medium text-gray-500 dark:text-gray-400">
-            Gender
-          </span>
-          <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-            {selectedPatient?.patientSex || '-'}
-          </p>
-        </div>
-        
-        <div className="p-2 bg-gray-50 rounded-lg dark:bg-gray-700">
-          <span className="block mb-1 text-xs font-medium text-gray-500 dark:text-gray-400">
-            Age
-          </span>
-          <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-            {selectedPatient?.patientAge || '-'}
-          </p>
-        </div>
-        
-        <div className="p-2 bg-gray-50 rounded-lg dark:bg-gray-700">
-          <span className="block mb-1 text-xs font-medium text-gray-500 dark:text-gray-400">
-            Weight
-          </span>
-          <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-            {selectedPatient?.patientWeight ? `${selectedPatient.patientWeight} kg` : '-'}
-          </p>
+        <div className="flex flex-1 gap-6">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-medium text-gray-500 dark:text-gray-400">ID:</span>
+            <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+              {selectedPatient?.patientId || '-'}
+            </span>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-medium text-gray-500 dark:text-gray-400">DOB:</span>
+            <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+              {selectedPatient?.patientBirthDate || '-'}
+            </span>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Gender:</span>
+            <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+              {selectedPatient?.patientSex || '-'}
+            </span>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Age:</span>
+            <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+              {selectedPatient?.patientAge || '-'}
+            </span>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Weight:</span>
+            <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+              {selectedPatient?.patientWeight ? `${selectedPatient.patientWeight} kg` : '-'}
+            </span>
+          </div>
         </div>
       </div>
     </div>
