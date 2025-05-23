@@ -54,7 +54,7 @@ const PredictionFeedback: React.FC<PredictionFeedbackProps> = ({
       <div className="p-4 mb-4 transition-colors duration-300 border rounded-md dark:border-gray-700">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
-            {isReanalysis ? 'Prediction:' : 'Prediction:'}
+            {showReanalysisInput ? 'Annotate:' : 'Prediction:'}
           </span>
           
           {prediction !== '-' && !isReanalysis && !isAnalyzing && !showReanalysisInput && (
