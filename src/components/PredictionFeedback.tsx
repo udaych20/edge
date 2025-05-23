@@ -49,17 +49,65 @@ const PredictionFeedback: React.FC<PredictionFeedbackProps> = ({
 
       {showReanalysisModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-xl dark:bg-gray-800">
+          <div className="w-full max-w-5xl p-6 bg-white rounded-lg shadow-xl dark:bg-gray-800">
             <h3 className="mb-4 text-lg font-medium text-gray-900 dark:text-white">
               Request Second Opinion
             </h3>
-            <textarea
-              value={reanalysisNotes}
-              onChange={(e) => setReanalysisNotes(e.target.value)}
-              placeholder="Please enter your observations and reason for requesting a second opinion..."
-              className="w-full h-32 px-3 py-2 mb-4 transition-colors duration-200 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-            />
-            <div className="flex justify-end gap-3">
+            
+            <div className="grid grid-cols-2 gap-6 mb-4">
+              <div className="aspect-square rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700">
+                <img 
+                  src={currentImage} 
+                  alt="Original Scan" 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="aspect-square rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700">
+                <img 
+                  src={maskedImage} 
+                  alt="Marked Scan" 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Current Analysis
+                </label>
+                <div className="p-3 bg-gray-50 rounded-md dark:bg-gray-700">
+                  <div className="flex items-center">
+                    {prediction.includes('Anomaly') ? (
+                      <AlertCircle className="w-5 h-5 mr-2 text-red-500" />
+                    ) : (
+                      <CheckCircle className="w-5 h-5 mr-2 text-green-500" />
+                    )}
+                    <span className={`font-medium ${
+                      prediction.includes('Anomaly') 
+                        ? 'text-red-600 dark:text-red-400' 
+                        : 'text-green-600 dark:text-green-400'
+                    }`}>
+                      {prediction}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Reason for Second Opinion
+                </label>
+                <textarea
+                  value={reanalysisNotes}
+                  onChange={(e) => setReanalysisNotes(e.target.value)}
+                  placeholder="Please explain why you're requesting a second opinion..."
+                  className="w-full h-32 px-3 py-2 transition-colors duration-200 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 mt-6">
               <button
                 onClick={() => setShowReanalysisModal(false)}
                 className="px-4 py-2 text-sm font-medium text-gray-700 transition-colors duration-200 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
@@ -71,7 +119,7 @@ const PredictionFeedback: React.FC<PredictionFeedbackProps> = ({
                 disabled={!reanalysisNotes.trim()}
                 className="px-4 py-2 text-sm font-medium text-white transition-colors duration-200 bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-blue-700 dark:hover:bg-blue-800"
               >
-                Proceed
+                Request Second Opinion
               </button>
             </div>
           </div>
