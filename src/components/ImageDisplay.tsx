@@ -1,5 +1,5 @@
 import React from 'react';
-import { ImageIcon } from 'lucide-react';
+import { ImageIcon, MousePointer, Scan } from 'lucide-react';
 
 interface ImageDisplayProps {
   imageUrl: string;
@@ -21,9 +21,18 @@ const ImageDisplay: React.FC<ImageDisplayProps> = ({ imageUrl, title }) => {
             className="object-cover w-full h-full"
           />
         ) : (
-          <div className="flex flex-col items-center justify-center text-gray-400">
-            <ImageIcon className="w-12 h-12 mb-2 opacity-30" />
-            <span className="text-sm">No image loaded</span>
+          <div className="flex flex-col items-center justify-center p-4 text-center text-gray-400">
+            {title === "Original Scan" ? (
+              <>
+                <MousePointer className="w-12 h-12 mb-2 opacity-30" />
+                <span className="text-sm">Click "Load Image" to load scan from PACS system</span>
+              </>
+            ) : (
+              <>
+                <Scan className="w-12 h-12 mb-2 opacity-30" />
+                <span className="text-sm">Click "Analyze" to identify tumor regions</span>
+              </>
+            )}
           </div>
         )}
       </div>
