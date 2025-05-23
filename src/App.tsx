@@ -32,6 +32,7 @@ function App() {
   const [maskedImage, setMaskedImage] = useState<string>('');
   const [prediction, setPrediction] = useState<string>('-');
   const [isReanalysis, setIsReanalysis] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   useEffect(() => {
     fetchPatients();
@@ -60,16 +61,16 @@ function App() {
     
     const imageUrl = `http://52.230.108.4:8097/api/orthanc/get-image-old/${selectedPatient.patientId}`;
     setCurrentImage(imageUrl);
-    setMaskedImage(''); // Reset masked image when loading new image
-    setPrediction('-'); // Reset prediction
-    setIsReanalysis(false); // Reset reanalysis flag
-    setPrediction('-'); // Reset prediction
-    setIsReanalysis(false); // Reset reanalysis flag
+    setMaskedImage('');
+    setPrediction('-');
+    setIsReanalysis(false);
+    setIsAnalyzing(false);
   };
 
   const analyzeImage = async (isSecondOpinion = false) => {
     if (!currentImage) return;
     
+    setIsAnalyzing(true);
     try {
       const response = await fetch(currentImage);
       const blob = await response.blob();
@@ -77,10 +78,9 @@ function App() {
       const formData = new FormData();
       formData.append('files', blob, 'image.tiff');
       
-      // Use different endpoint for reanalysis
       const predictionUrl = isSecondOpinion 
-        ? 'http://20.184.8.188:8509/predict'  // Second opinion endpoint
-        : 'http://20.184.8.188:8510/predict'; // Initial analysis endpoint
+        ? 'http://20.184.8.188:8509/predict'
+        : 'http://20.184.8.188:8510/predict';
       
       const predictionResponse = await fetch(predictionUrl, {
         method: 'POST',
@@ -95,12 +95,13 @@ function App() {
       setPrediction(predictionResult);
       setIsReanalysis(isSecondOpinion);
       
-      // Load the corresponding masked image from assets
       const maskedImagePath = `/assets/scans/overlay_${selectedPatient?.patientId}.jpg`;
       setMaskedImage(maskedImagePath);
     } catch (err) {
       console.error('Error analyzing image:', err);
       alert('Error analyzing image.');
+    } finally {
+      setIsAnalyzing(false);
     }
   };
 
@@ -124,10 +125,8 @@ function App() {
         body: JSON.stringify(submission)
       });
       
-      if (response.ok) {
-        //alert('Feedback submitted successfully!');
-      } else {
-        //alert('Failed to submit feedback.');
+      if (!response.ok) {
+        throw new Error('Failed to submit feedback');
       }
     } catch (err) {
       console.error('Error submitting feedback:', err);
@@ -163,6 +162,7 @@ function App() {
             submitFeedback={submitFeedback}
             onReanalyze={() => analyzeImage(true)}
             isReanalysis={isReanalysis}
+            isAnalyzing={isAnalyzing}
           />
         </div>
       </div>
