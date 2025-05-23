@@ -19,8 +19,8 @@ const PredictionFeedback: React.FC<PredictionFeedbackProps> = ({
 }) => {
   const [comments, setComments] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showReanalysisModal, setShowReanalysisModal] = useState(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [showReanalysisInput, setShowReanalysisInput] = useState(false);
   const [reanalysisNotes, setReanalysisNotes] = useState('');
 
   const handleSubmit = async () => {
@@ -33,7 +33,7 @@ const PredictionFeedback: React.FC<PredictionFeedbackProps> = ({
 
   const handleReanalyze = () => {
     if (reanalysisNotes.trim()) {
-      setShowReanalysisModal(false);
+      setShowReanalysisInput(false);
       onReanalyze();
       setComments(reanalysisNotes);
       setReanalysisNotes('');
@@ -47,37 +47,6 @@ const PredictionFeedback: React.FC<PredictionFeedbackProps> = ({
         onClose={() => setShowFeedbackModal(false)} 
       />
 
-      {showReanalysisModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-xl dark:bg-gray-800">
-            <h3 className="mb-4 text-lg font-medium text-gray-900 dark:text-white">
-              Request Second Opinion
-            </h3>
-            <textarea
-              value={reanalysisNotes}
-              onChange={(e) => setReanalysisNotes(e.target.value)}
-              placeholder="Please enter your observations and reason for requesting a analasys..."
-              className="w-full h-32 px-3 py-2 mb-4 transition-colors duration-200 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-            />
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setShowReanalysisModal(false)}
-                className="px-4 py-2 text-sm font-medium text-gray-700 transition-colors duration-200 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleReanalyze}
-                disabled={!reanalysisNotes.trim()}
-                className="px-4 py-2 text-sm font-medium text-white transition-colors duration-200 bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-blue-700 dark:hover:bg-blue-800"
-              >
-                Proceed
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       <h3 className="mb-3 text-sm font-medium text-gray-700 dark:text-gray-300">
         Prediction & Feedback
       </h3>
@@ -88,9 +57,9 @@ const PredictionFeedback: React.FC<PredictionFeedbackProps> = ({
             {isReanalysis ? 'Prediction:' : 'Prediction:'}
           </span>
           
-          {prediction !== '-' && !isReanalysis && !isAnalyzing && (
+          {prediction !== '-' && !isReanalysis && !isAnalyzing && !showReanalysisInput && (
             <button
-              onClick={() => setShowReanalysisModal(true)}
+              onClick={() => setShowReanalysisInput(true)}
               className="flex items-center px-3 py-1 text-sm text-blue-600 transition-colors duration-200 border border-blue-600 rounded-md hover:bg-blue-50 dark:text-blue-400 dark:border-blue-400 dark:hover:bg-gray-700"
             >
               <RefreshCw className="w-4 h-4 mr-1" />
@@ -99,32 +68,61 @@ const PredictionFeedback: React.FC<PredictionFeedbackProps> = ({
           )}
         </div>
         
-        <div className="flex items-center">
-          {isAnalyzing ? (
-            <>
-              <Loader2 className="w-5 h-5 mr-2 text-blue-500 animate-spin" />
-              <span className="text-blue-600 dark:text-blue-400">Processing...</span>
-            </>
-          ) : (
-            <>
-              {prediction.includes('Anomaly') ? (
-                <AlertCircle className="w-5 h-5 mr-2 text-red-500" />
-              ) : prediction !== '-' ? (
-                <CheckCircle className="w-5 h-5 mr-2 text-green-500" />
-              ) : null}
-              
-              <span className={`font-medium ${
-                prediction.includes('Anomaly') 
-                  ? 'text-red-600 dark:text-red-400' 
-                  : prediction !== '-' 
-                    ? 'text-green-600 dark:text-green-400'
-                    : 'text-gray-500 dark:text-gray-400'
-              }`}>
-                {prediction}
-              </span>
-            </>
-          )}
-        </div>
+        {showReanalysisInput ? (
+          <div className="space-y-3">
+            <textarea
+              value={reanalysisNotes}
+              onChange={(e) => setReanalysisNotes(e.target.value)}
+              placeholder="Please enter your observations and reason for requesting a reanalysis..."
+              className="w-full h-24 px-3 py-2 text-sm transition-colors duration-200 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            />
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => {
+                  setShowReanalysisInput(false);
+                  setReanalysisNotes('');
+                }}
+                className="px-3 py-1 text-sm text-gray-600 transition-colors duration-200 bg-gray-100 rounded-md hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleReanalyze}
+                disabled={!reanalysisNotes.trim()}
+                className="flex items-center px-3 py-1 text-sm text-white transition-colors duration-200 bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-blue-700 dark:hover:bg-blue-800"
+              >
+                Proceed
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-center">
+            {isAnalyzing ? (
+              <>
+                <Loader2 className="w-5 h-5 mr-2 text-blue-500 animate-spin" />
+                <span className="text-blue-600 dark:text-blue-400">Processing...</span>
+              </>
+            ) : (
+              <>
+                {prediction.includes('Anomaly') ? (
+                  <AlertCircle className="w-5 h-5 mr-2 text-red-500" />
+                ) : prediction !== '-' ? (
+                  <CheckCircle className="w-5 h-5 mr-2 text-green-500" />
+                ) : null}
+                
+                <span className={`font-medium ${
+                  prediction.includes('Anomaly') 
+                    ? 'text-red-600 dark:text-red-400' 
+                    : prediction !== '-' 
+                      ? 'text-green-600 dark:text-green-400'
+                      : 'text-gray-500 dark:text-gray-400'
+                }`}>
+                  {prediction}
+                </span>
+              </>
+            )}
+          </div>
+        )}
       </div>
       
       <div>
