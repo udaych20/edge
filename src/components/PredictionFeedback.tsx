@@ -56,7 +56,7 @@ const PredictionFeedback: React.FC<PredictionFeedbackProps> = ({
             <textarea
               value={reanalysisNotes}
               onChange={(e) => setReanalysisNotes(e.target.value)}
-              placeholder="Please enter your observations and reason for requesting a second opinion..."
+              placeholder="Please enter your observations and reason for requesting a analasys..."
               className="w-full h-32 px-3 py-2 mb-4 transition-colors duration-200 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             />
             <div className="flex justify-end gap-3">
@@ -85,7 +85,7 @@ const PredictionFeedback: React.FC<PredictionFeedbackProps> = ({
       <div className="p-4 mb-4 transition-colors duration-300 border rounded-md dark:border-gray-700">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
-            {isReanalysis ? 'Second Opinion:' : 'Prediction:'}
+            {isReanalysis ? 'Prediction:' : 'Prediction:'}
           </span>
           
           {prediction !== '-' && !isReanalysis && !isAnalyzing && (
