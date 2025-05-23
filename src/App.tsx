@@ -163,6 +163,8 @@ function App() {
             onReanalyze={() => analyzeImage(true)}
             isReanalysis={isReanalysis}
             isAnalyzing={isAnalyzing}
+            loadImage={loadImage}
+            analyzeImage={() => analyzeImage(false)}
           />
         </div>
       </div>
