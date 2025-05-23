@@ -95,8 +95,11 @@ function App() {
       setPrediction(predictionResult);
       setIsReanalysis(isSecondOpinion);
       
-      // Use the same overlay image for both first analysis and reanalysis
-      const maskedImagePath = `/assets/scans/overlay_${selectedPatient.patientId}.jpg`;
+      // For first analysis, show the original scan
+      // For reanalysis (second opinion), show the overlay image
+      const maskedImagePath = isSecondOpinion
+        ? `/assets/scans/overlay_${selectedPatient.patientId}.jpg`
+        : currentImage;
       setMaskedImage(maskedImagePath);
     } catch (err) {
       console.error('Error analyzing image:', err);
