@@ -1,0 +1,27 @@
+curl --location 'http://20.184.8.188:8080/fhir/MedicationRequest' --header 'Content-Type: application/fhir+json' --data '{
+  "resourceType": "MedicationRequest",
+  "status": "active",
+  "intent": "order",
+  "medicationCodeableConcept": {
+    "text": "Amoxicillin"
+  },
+  "subject": {
+    "reference": "Patient/1"
+  },
+  "authoredOn": "2025-05-05",
+  "requester": {
+    "reference": "Practitioner/260",
+    "display": "Dr. Adams"
+  },
+  "dispenseRequest": {
+    "validityPeriod": {
+      "start": "2025-05-05",
+      "end": "2025-05-12"
+    }
+  },
+  "note": [
+    {
+      "text": "Overlap"
+    }
+  ]
+}'

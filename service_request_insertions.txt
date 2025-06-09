@@ -1,0 +1,11 @@
+curl --location 'http://20.184.8.188:8080/fhir/ServiceRequest' --header 'Content-Type: application/fhir+json' --data '{
+  "resourceType": "ServiceRequest",
+  "status": "active",
+  "intent": "order",
+  "code": { "text": "Antibiotics" },
+  "subject": { "reference": "Patient/1" },
+  "category": [{ "text": "Infusion" }],
+  "occurrenceDateTime": "2025-05-05T19:00:00",
+  "requester": { "reference": "Practitioner/260", "display": "Dr. Adams" },
+  "note": [{ "text": "Standard antibiotic infusion protocol." }]
+}'

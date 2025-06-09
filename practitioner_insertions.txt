@@ -1,0 +1,16 @@
+curl --location 'http://20.184.8.188:8080/fhir/Practitioner' --header 'Content-Type: application/fhir+json' --data '{
+  "resourceType": "Practitioner",
+  "name": [{
+    "family": "Desai",
+    "given": ["Anita"]
+  }]
+}'
+
+curl --location 'http://20.184.8.188:8080/fhir/Practitioner' --header 'Content-Type: application/fhir+json' --data '{
+  "resourceType": "Practitioner",
+  "id": "260",
+  "name": [{
+    "family": "Adams",
+    "given": ["John"]
+  }]
+}'
