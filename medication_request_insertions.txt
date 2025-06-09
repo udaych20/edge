@@ -25,3 +25,82 @@ curl --location 'http://20.184.8.188:8080/fhir/MedicationRequest' --header 'Cont
     }
   ]
 }'
+
+
+
+package com.wipro.fhir.adopter.service;
+
+import ca.uhn.fhir.context.FhirContext;
+import ca.uhn.fhir.rest.client.api.IGenericClient;
+import com.wipro.fhir.adopter.dto.MedicalEncounterDTO;
+import org.hl7.fhir.r4.model.Bundle;
+import org.hl7.fhir.r4.model.Encounter;
+import org.hl7.fhir.r4.model.Practitioner;
+import org.hl7.fhir.r4.model.Reference;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.stream.Collectors;
+
+@Service
+public class MedicalEncounterService {
+
+    private final FhirContext ctx = FhirContext.forR4();
+    private IGenericClient client;
+
+    public MedicalEncounterService(@Value("${fhir.server.url}") String fhirServerUrl) {
+        this.client = ctx.newRestfulGenericClient(fhirServerUrl);
+    }
+
+    public List<MedicalEncounterDTO> getMedicalEncounters(int patientId, int page, int size, String sortBy, String sortOrder) {
+        Bundle bundle = client.search()
+            .forResource(Encounter.class)
+            .where(Encounter.PATIENT.hasId("Patient/" + patientId))
+            .returnBundle(Bundle.class)
+            .execute();
+
+        List<MedicalEncounterDTO> all = new ArrayList<>();
+
+        int counter = 1;
+        for (Bundle.BundleEntryComponent entry : bundle.getEntry()) {
+            Encounter enc = (Encounter) entry.getResource();
+            MedicalEncounterDTO dto = new MedicalEncounterDTO();
+            dto.setEncounterId(patientId + "_" + counter++);
+            dto.setPatientId(patientId);
+
+            Date date = enc.getPeriod() != null ? enc.getPeriod().getStart() : new Date();
+            dto.setDate(new SimpleDateFormat("MMM, yyyy").format(date));
+            dto.setDateParsed(new SimpleDateFormat("yyyy-MM-dd").format(date));
+
+            dto.setTitle(enc.getReasonCodeFirstRep().getText());
+            dto.setNote(enc.getReasonCodeFirstRep().getText());
+
+            List<String> tags = enc.getReasonCode().stream()
+                .map(reason -> reason.getText() != null ? reason.getText() : "")
+                .filter(s -> !s.isBlank())
+                .collect(Collectors.toList());
+            dto.setTags(tags);
+
+            String doctorName = "Dr. Unknown";
+            String tooltip = "Practitioner, Department, Facility";
+            if (!enc.getParticipant().isEmpty()) {
+                Reference individual = enc.getParticipantFirstRep().getIndividual();
+                if (individual.getDisplay() != null) doctorName = individual.getDisplay();
+                tooltip = individual.getDisplay() + ", Role, Facility"; // Simplified for now
+            }
+            dto.setAddedBy(doctorName);
+            dto.setAddedByProfileTooltip(tooltip);
+
+            all.add(dto);
+        }
+
+        Comparator<MedicalEncounterDTO> comparator = Comparator.comparing(MedicalEncounterDTO::getDate);
+        if ("desc".equalsIgnoreCase(sortOrder)) comparator = comparator.reversed();
+
+        return all.stream()
+            .sorted(comparator)
+            .collect(Collectors.toList());
+    }
+}
