@@ -30,77 +30,99 @@ curl --location 'http://20.184.8.188:8080/fhir/MedicationRequest' --header 'Cont
 
 package com.wipro.fhir.adopter.service;
 
-import ca.uhn.fhir.context.FhirContext;
-import ca.uhn.fhir.rest.client.api.IGenericClient;
-import com.wipro.fhir.adopter.dto.MedicalEncounterDTO;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.hl7.fhir.r4.model.Bundle;
-import org.hl7.fhir.r4.model.Encounter;
+import org.hl7.fhir.r4.model.MedicationRequest;
+import org.hl7.fhir.r4.model.Period;
 import org.hl7.fhir.r4.model.Practitioner;
-import org.hl7.fhir.r4.model.Reference;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.stream.Collectors;
+import com.wipro.fhir.adopter.dto.ActiveMedicationsResponseDTO;
+import com.wipro.fhir.adopter.dto.MedicationDTO;
+
+import ca.uhn.fhir.context.FhirContext;
+import ca.uhn.fhir.rest.client.api.IGenericClient;
 
 @Service
-public class MedicalEncounterService {
+public class FhirMedicationService {
 
-    private final FhirContext ctx = FhirContext.forR4();
-    private IGenericClient client;
+    @Value("${fhir.server.url}")
+    private String fhirServerUrl;
 
-    public MedicalEncounterService(@Value("${fhir.server.url}") String fhirServerUrl) {
-        this.client = ctx.newRestfulGenericClient(fhirServerUrl);
-    }
+    public ActiveMedicationsResponseDTO getActiveMedications(String patientId) {
+        FhirContext ctx = FhirContext.forR4();
+        IGenericClient client = ctx.newRestfulGenericClient(fhirServerUrl);
 
-    public List<MedicalEncounterDTO> getMedicalEncounters(int patientId, int page, int size, String sortBy, String sortOrder) {
-        Bundle bundle = client.search()
-            .forResource(Encounter.class)
-            .where(Encounter.PATIENT.hasId("Patient/" + patientId))
-            .returnBundle(Bundle.class)
-            .execute();
+        Bundle bundle = client
+                .search()
+                .forResource(MedicationRequest.class)
+                .where(MedicationRequest.SUBJECT.hasId("Patient/" + patientId))
+                .returnBundle(Bundle.class)
+                .execute();
 
-        List<MedicalEncounterDTO> all = new ArrayList<>();
+        List<MedicationDTO> medicationList = new ArrayList<>();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-        int counter = 1;
         for (Bundle.BundleEntryComponent entry : bundle.getEntry()) {
-            Encounter enc = (Encounter) entry.getResource();
-            MedicalEncounterDTO dto = new MedicalEncounterDTO();
-            dto.setEncounterId(patientId + "_" + counter++);
-            dto.setPatientId(patientId);
+            MedicationRequest request = (MedicationRequest) entry.getResource();
+            MedicationDTO dto = new MedicationDTO();
 
-            Date date = enc.getPeriod() != null ? enc.getPeriod().getStart() : new Date();
-            dto.setDate(new SimpleDateFormat("MMM, yyyy").format(date));
-            dto.setDateParsed(new SimpleDateFormat("yyyy-MM-dd").format(date));
-
-            dto.setTitle(enc.getReasonCodeFirstRep().getText());
-            dto.setNote(enc.getReasonCodeFirstRep().getText());
-
-            List<String> tags = enc.getReasonCode().stream()
-                .map(reason -> reason.getText() != null ? reason.getText() : "")
-                .filter(s -> !s.isBlank())
-                .collect(Collectors.toList());
-            dto.setTags(tags);
-
-            String doctorName = "Dr. Unknown";
-            String tooltip = "Practitioner, Department, Facility";
-            if (!enc.getParticipant().isEmpty()) {
-                Reference individual = enc.getParticipantFirstRep().getIndividual();
-                if (individual.getDisplay() != null) doctorName = individual.getDisplay();
-                tooltip = individual.getDisplay() + ", Role, Facility"; // Simplified for now
+            if (request.hasMedicationCodeableConcept() && request.getMedicationCodeableConcept().hasText()) {
+                dto.name = request.getMedicationCodeableConcept().getText();
+            } else {
+                continue; // skip entries without name
             }
-            dto.setAddedBy(doctorName);
-            dto.setAddedByProfileTooltip(tooltip);
 
-            all.add(dto);
+            if (request.hasStatus()) {
+                dto.status = request.getStatus().toCode().toUpperCase();
+            }
+
+            if (request.hasAuthoredOn()) {
+                dto.startDate = formatter.format(
+                        request.getAuthoredOn().toInstant().atZone(ZoneId.systemDefault()));
+            }
+
+            if (request.hasDispenseRequest() && request.getDispenseRequest().hasValidityPeriod()) {
+                Period period = request.getDispenseRequest().getValidityPeriod();
+                if (period.hasEnd()) {
+                    dto.endDate = formatter.format(
+                            period.getEnd().toInstant().atZone(ZoneId.systemDefault()));
+                }
+            }
+
+            dto.lastGiven = dto.endDate != null ? dto.endDate : dto.startDate;
+
+            if (request.hasRequester() && request.getRequester().hasReference()) {
+                try {
+                    String practitionerId = request.getRequester().getReference().split("/")[1];
+                    Practitioner practitioner = client.read()
+                            .resource(Practitioner.class)
+                            .withId(practitionerId)
+                            .execute();
+
+                    if (practitioner.hasName()) {
+                        dto.prescribedBy = practitioner.getNameFirstRep().getText();
+                    }
+                } catch (Exception e) {
+                    // skip if practitioner not found
+                }
+            }
+
+            if (request.hasNote() && !request.getNote().isEmpty()) {
+                dto.notes = request.getNote().get(0).getText();
+            }
+
+            medicationList.add(dto);
         }
 
-        Comparator<MedicalEncounterDTO> comparator = Comparator.comparing(MedicalEncounterDTO::getDate);
-        if ("desc".equalsIgnoreCase(sortOrder)) comparator = comparator.reversed();
-
-        return all.stream()
-            .sorted(comparator)
-            .collect(Collectors.toList());
+        ActiveMedicationsResponseDTO response = new ActiveMedicationsResponseDTO();
+        response.patientId = patientId;
+        response.medications = medicationList;
+        return response;
     }
 }
