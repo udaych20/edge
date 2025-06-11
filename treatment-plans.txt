@@ -1,252 +1,156 @@
-package com.wipro.fhir.adopter.service;
+package com.example.livevitals;
 
-import java.time.Duration;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import org.hl7.fhir.r4.model.*;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.eclipse.paho.client.mqttv3.*;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Sinks;
 
-import com.wipro.fhir.adopter.dto.TreatmentDTO;
+import javax.annotation.PostConstruct;
+import java.time.Instant;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-import ca.uhn.fhir.context.FhirContext;
-import ca.uhn.fhir.rest.client.api.IGenericClient;
+@RestController
+@RequestMapping("/api/patient")
+public class LiveVitalsController {
 
-@Service
-public class FhirTreatmentService {
+    private final LiveVitalsService liveVitalsService;
 
-    @Value("${fhir.server.url}")
-    private String fhirServerUrl;
-
-    public List<TreatmentDTO> getTreatments(String patientId, String tabStatus) {
-        FhirContext ctx = FhirContext.forR4();
-        IGenericClient client = ctx.newRestfulGenericClient(fhirServerUrl);
-
-        List<TreatmentDTO> result = new ArrayList<>();
-        AtomicInteger counter = new AtomicInteger(1);
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM d, yyyy, hh:mma");
-
-        // Fetch ServiceRequest
-        Bundle srBundle = client
-                .search()
-                .forResource(ServiceRequest.class)
-                .where(ServiceRequest.SUBJECT.hasId("Patient/" + patientId))
-                .returnBundle(Bundle.class)
-                .execute();
-
-        for (Bundle.BundleEntryComponent entry : srBundle.getEntry()) {
-            ServiceRequest sr = (ServiceRequest) entry.getResource();
-            TreatmentDTO dto = buildTreatmentDTOFromServiceRequest(sr, patientId, counter.getAndIncrement(), tabStatus, formatter);
-            if (dto != null) result.add(dto);
-        }
-
-        // Fetch Procedure
-        Bundle prBundle = client
-                .search()
-                .forResource(Procedure.class)
-                .where(Procedure.SUBJECT.hasId("Patient/" + patientId))
-                .returnBundle(Bundle.class)
-                .execute();
-
-        for (Bundle.BundleEntryComponent entry : prBundle.getEntry()) {
-            Procedure pr = (Procedure) entry.getResource();
-            TreatmentDTO dto = buildTreatmentDTOFromProcedure(pr, patientId, counter.getAndIncrement(), tabStatus, formatter);
-            if (dto != null) result.add(dto);
-        }
-
-        // Fetch CarePlan
-        Bundle cpBundle = client
-                .search()
-                .forResource(CarePlan.class)
-                .where(CarePlan.SUBJECT.hasId("Patient/" + patientId))
-                .returnBundle(Bundle.class)
-                .execute();
-
-        for (Bundle.BundleEntryComponent entry : cpBundle.getEntry()) {
-            CarePlan cp = (CarePlan) entry.getResource();
-            TreatmentDTO dto = buildTreatmentDTOFromCarePlan(cp, patientId, counter.getAndIncrement(), tabStatus, formatter);
-            if (dto != null) result.add(dto);
-        }
-
-        return result;
+    public LiveVitalsController(LiveVitalsService liveVitalsService) {
+        this.liveVitalsService = liveVitalsService;
     }
 
-    private TreatmentDTO buildTreatmentDTOFromServiceRequest(ServiceRequest sr, String patientId, int id, String tabStatus, DateTimeFormatter formatter) {
-        TreatmentDTO dto = new TreatmentDTO();
-        dto.treatmentId = patientId + "_" + id;
-        dto.patientId = Integer.parseInt(patientId);
-
-        dto.treatmentName = sr.hasCode() ? (sr.getCode().hasText() ? sr.getCode().getText() :
-                sr.getCode().getCodingFirstRep().getDisplay()) : "Unnamed Treatment";
-        dto.treatmentType = sr.hasCategory() ? sr.getCategoryFirstRep().getText() : "General";
-        dto.status = capitalize(sr.getStatus().toCode());
-
-        if (!dto.status.equalsIgnoreCase(tabStatus)) return null;
-
-        setProgressAndEta(dto, sr.hasOccurrenceDateTimeType() ? sr.getOccurrenceDateTimeType().getValue() : null, dto.status, formatter);
-
-        return dto;
-    }
-
-    private TreatmentDTO buildTreatmentDTOFromProcedure(Procedure pr, String patientId, int id, String tabStatus, DateTimeFormatter formatter) {
-        TreatmentDTO dto = new TreatmentDTO();
-        dto.treatmentId = patientId + "_" + id;
-        dto.patientId = Integer.parseInt(patientId);
-
-        dto.treatmentName = pr.getCode().getText() != null ? pr.getCode().getText() : pr.getCode().getCodingFirstRep().getDisplay();
-        dto.treatmentType = "Procedure";
-        dto.status = capitalize(pr.getStatus().toCode());
-
-        if (!dto.status.equalsIgnoreCase(tabStatus)) return null;
-
-        Date startDate = pr.hasPerformedPeriod() ? pr.getPerformedPeriod().getStart() : null;
-        setProgressAndEta(dto, startDate, dto.status, formatter);
-
-        return dto;
-    }
-
-    private TreatmentDTO buildTreatmentDTOFromCarePlan(CarePlan cp, String patientId, int id, String tabStatus, DateTimeFormatter formatter) {
-        TreatmentDTO dto = new TreatmentDTO();
-        dto.treatmentId = patientId + "_" + id;
-        dto.patientId = Integer.parseInt(patientId);
-
-        dto.treatmentName = "Care Plan";
-        if (cp.hasActivity()) {
-            CarePlan.CarePlanActivityComponent activity = cp.getActivityFirstRep();
-            if (activity.hasDetail() && activity.getDetail().hasCode()) {
-                dto.treatmentName = activity.getDetail().getCode().getText();
-            }
-        }
-
-        dto.treatmentType = "CarePlan";
-        dto.status = capitalize(cp.getStatus().toCode());
-
-        if (!dto.status.equalsIgnoreCase(tabStatus)) return null;
-
-        Date startDate = cp.hasPeriod() ? cp.getPeriod().getStart() : null;
-        setProgressAndEta(dto, startDate, dto.status, formatter);
-
-        return dto;
-    }
-
-    private void setProgressAndEta(TreatmentDTO dto, Date startDate, String status, DateTimeFormatter formatter) {
-        dto.progress = switch (status.toUpperCase()) {
-            case "SCHEDULED" -> 0;
-            case "RUNNING", "IN-PROGRESS" -> 75;
-            case "COMPLETED" -> 100;
-            default -> 50;
-        };
-
-        if (startDate != null) {
-            ZonedDateTime zonedStart = startDate.toInstant().atZone(ZoneId.systemDefault());
-            dto.parsedStartTime = zonedStart.toString();
-            dto.startTime = zonedStart.format(formatter);
-
-            ZonedDateTime now = ZonedDateTime.now();
-            ZonedDateTime assumedEnd = zonedStart.plusMinutes(90);
-
-            if (dto.progress < 100 && now.isBefore(assumedEnd)) {
-                Duration remaining = Duration.between(now, assumedEnd);
-                long hrs = remaining.toHours();
-                long min = remaining.toMinutes() % 60;
-                dto.eta = hrs > 0 ? String.format("%dh %d min remaining", hrs, min) : String.format("%d min remaining", min);
-            } else {
-                dto.eta = "Completed";
-            }
-        } else {
-            dto.parsedStartTime = null;
-            dto.startTime = "Unknown";
-            dto.eta = "Unknown";
-        }
-    }
-
-    private String capitalize(String s) {
-        return s != null && s.length() > 1 ? s.substring(0, 1).toUpperCase() + s.substring(1).toLowerCase() : s;
+    @GetMapping(value = "/{patientId}/live-vitals", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<LiveVitalsResponse> getLiveVitals(@PathVariable int patientId) {
+        return liveVitalsService.getVitalsStream(patientId);
     }
 }
 
+@Service
+class LiveVitalsService {
 
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final Sinks.Many<LiveVitalsResponse> sink = Sinks.many().multicast().onBackpressureBuffer();
+    private final AtomicBoolean subscribed = new AtomicBoolean(false);
 
+    @Value("${mqtt.broker.url}")
+    private String brokerUrl;
 
-curl -X POST "http://your-fhir-server/fhir/ServiceRequest" \
-  -H "Content-Type: application/fhir+json" \
-  -d '{
-    "resourceType": "ServiceRequest",
-    "status": "active",
-    "intent": "order",
-    "code": {
-      "text": "Blood Test"
-    },
-    "subject": {
-      "reference": "Patient/1"
-    },
-    "category": [
-      {
-        "text": "Lab Test"
-      }
-    ],
-    "occurrenceDateTime": "2025-06-10T10:00:00+05:30",
-    "note": [
-      {
-        "text": "Routine fasting blood test scheduled."
-      }
-    ]
-  }'
+    @PostConstruct
+    public void subscribeToMqtt() throws MqttException {
+        if (subscribed.compareAndSet(false, true)) {
+            MqttClient client = new MqttClient(brokerUrl, MqttClient.generateClientId());
+            client.connect();
+            client.subscribe("sensor_data", (topic, msg) -> {
+                String payload = new String(msg.getPayload());
+                try {
+                    JsonNode root = objectMapper.readTree(payload);
+                    JsonNode data = root.path("data");
 
-
-curl -X POST "http://your-fhir-server/fhir/CarePlan" \
-  -H "Content-Type: application/fhir+json" \
-  -d '{
-    "resourceType": "CarePlan",
-    "status": "active",
-    "intent": "plan",
-    "subject": {
-      "reference": "Patient/1"
-    },
-    "period": {
-      "start": "2025-06-08",
-      "end": "2025-07-08"
-    },
-    "activity": [
-      {
-        "detail": {
-          "status": "in-progress",
-          "code": {
-            "coding": [
-              {
-                "system": "http://snomed.info/sct",
-                "code": "386053000",
-                "display": "Physical therapy procedure"
-              }
-            ]
-          },
-          "scheduledPeriod": {
-            "start": "2025-06-08T08:00:00+05:30",
-            "end": "2025-07-01T09:00:00+05:30"
-          },
-          "progress": [
-            {
-              "text": "Session 2 of 10 completed."
-            }
-          ]
+                    LiveVitalsResponse response = new LiveVitalsResponse();
+                    response.setStatus("Success");
+                    LiveVitalsResponse.Data vitals = new LiveVitalsResponse.Data();
+                    vitals.setHeartRate(data.path("hr").asInt());
+                    vitals.setPulseRate(data.path("pr").asInt());
+                    vitals.setSpo2(data.path("spo2").asInt());
+                    vitals.setTemperature(data.path("temp").asDouble());
+                    vitals.setRespiratoryRate(data.path("rr").asInt());
+                    vitals.setRecordedAt(Instant.now().toString());
+                    response.setData(vitals);
+                    sink.tryEmitNext(response);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
         }
-      }
-    ],
-    "note": [
-      {
-        "text": "Rehabilitation started post-op."
-      }
-    ],
-    "extension": [
-      {
-        "url": "http://example.org/fhir/StructureDefinition/eta-completion",
-        "valueDateTime": "2025-07-01T09:00:00+05:30"
-      }
-    ]
-  }'
+    }
+
+    public Flux<LiveVitalsResponse> getVitalsStream(int patientId) {
+        return sink.asFlux();
+    }
+}
+
+class LiveVitalsResponse {
+    private String status;
+    private Data data;
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public Data getData() {
+        return data;
+    }
+
+    public void setData(Data data) {
+        this.data = data;
+    }
+
+    static class Data {
+        private int heartRate;
+        private int pulseRate;
+        private int spo2;
+        private double temperature;
+        private int respiratoryRate;
+        private String recordedAt;
+
+        public int getHeartRate() {
+            return heartRate;
+        }
+
+        public void setHeartRate(int heartRate) {
+            this.heartRate = heartRate;
+        }
+
+        public int getPulseRate() {
+            return pulseRate;
+        }
+
+        public void setPulseRate(int pulseRate) {
+            this.pulseRate = pulseRate;
+        }
+
+        public int getSpo2() {
+            return spo2;
+        }
+
+        public void setSpo2(int spo2) {
+            this.spo2 = spo2;
+        }
+
+        public double getTemperature() {
+            return temperature;
+        }
+
+        public void setTemperature(double temperature) {
+            this.temperature = temperature;
+        }
+
+        public int getRespiratoryRate() {
+            return respiratoryRate;
+        }
+
+        public void setRespiratoryRate(int respiratoryRate) {
+            this.respiratoryRate = respiratoryRate;
+        }
+
+        public String getRecordedAt() {
+            return recordedAt;
+        }
+
+        public void setRecordedAt(String recordedAt) {
+            this.recordedAt = recordedAt;
+        }
+    }
+}
